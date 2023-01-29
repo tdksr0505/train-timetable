@@ -45,12 +45,14 @@ const fetchData = (date: string, from: string, to: string) => {
       if (res.status === 429) {
         // status 429:請求api次數過多
         message.error("請求api次數過多");
+        return null;
+      } else {
+        return res.json();
       }
-      return res.json();
     })
     .then((resJson) => {
       console.log(resJson);
-      dateQueryData.tableData = resJson.TrainTimetables;
+      if (resJson) dateQueryData.tableData = resJson?.TrainTimetables;
       loadingStore.setLoading(false);
     });
   // dateQueryData.tableData = queryFakeData.TrainTimetables;
@@ -65,9 +67,6 @@ const fetchData = (date: string, from: string, to: string) => {
 
 const onClickQuery = () => {
   fetchData(pickDate.value, fromStation.value, toStation.value);
-  setTimeout(() => {
-    loadingStore.setLoading(true);
-  }, 2000);
 };
 
 const onClickExchange = () => {

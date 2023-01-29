@@ -22,8 +22,10 @@ const fetchData = (stationId: number) => {
       if (res.status === 429) {
         // status 429:請求api次數過多
         message.error("請求api次數過多");
+        return null;
+      } else {
+        return res.json();
       }
-      return res.json();
     })
     .then((resJson) => {
       tableData.value = resJson;
@@ -52,7 +54,7 @@ onMounted(async () => {
       :name="station.id"
       :tab="station.stationName"
     >
-      <LiveBoardTable :data="tableData"></LiveBoardTable>
+      <LiveBoardTable v-if="tableData" :data="tableData"></LiveBoardTable>
     </n-tab-pane>
   </n-tabs>
 </template>

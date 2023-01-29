@@ -1,72 +1,49 @@
 <script setup lang="ts">
-import TimeTable from "../components/TimeTable.vue";
-import { onMounted, ref, reactive } from "vue";
+import LiveBoardTable from "../components/LiveBoardTable.vue";
+import { onMounted, ref } from "vue";
 import { NTabs, NTabPane } from "naive-ui";
-interface IStationInfo {
-  id: number;
-  stationName: string;
-  liveBoardData: object | null;
-}
+import { useStationInfoStore } from "../store/stationInfo";
+import type { TStationLiveBoardData } from "../type";
 
-const stationInfo: IStationInfo[] = [
-  {
-    id: 1070,
-    stationName: "鶯歌",
-    liveBoardData: null,
-  },
-  {
-    id: 1020,
-    stationName: "板橋",
-    liveBoardData: null,
-  },
-  {
-    id: 1000,
-    stationName: "台北",
-    liveBoardData: null,
-  },
-];
+const TDX_API_BASE = import.meta.env.VITE_TDX_API_BASE;
 const loading = ref(false);
-const timeTableData = ref<object | null>(null);
+const tableData = ref<TStationLiveBoardData[] | null>(null);
+const stationInfoStore = useStationInfoStore();
+
 const fetchData = (stationId: number) => {
   loading.value = true;
   fetch(
-    "https://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard/Station/" +
-      stationId +
-      "?$top=1000&$format=JSON"
+    `${TDX_API_BASE}/v2/Rail/TRA/LiveBoard/Station/${stationId}?$top=1000&$format=JSON`
   )
     .then((res) => res.json())
-    .then((json) => {
-      timeTableData.value = json;
-      stationInfo.filter(
-        (station) => station.id === stationId
-      )[0].liveBoardData = json;
+    .then((resJson) => {
+      tableData.value = resJson;
+      stationInfoStore.setLiveBoardData(stationId, resJson);
       loading.value = false;
     });
 };
 const handleValueChange = (value: number) => {
-  let currentStationInfo = stationInfo.filter(
-    (station) => station.id === value
-  )[0];
-  if (currentStationInfo.liveBoardData) {
-    timeTableData.value = currentStationInfo.liveBoardData;
+  let currentLiveBoardData = stationInfoStore.getLiveBoardData(value);
+  if (currentLiveBoardData) {
+    tableData.value = currentLiveBoardData;
   } else {
     fetchData(value);
   }
 };
 onMounted(async () => {
-  fetchData(1070);
+  handleValueChange(1070);
 });
 </script>
 
 <template>
   <n-tabs type="line" size="large" :on-update:value="handleValueChange">
     <n-tab-pane
-      v-for="station in stationInfo"
+      v-for="station in stationInfoStore.stationsInfo"
       :key="station.id"
       :name="station.id"
       :tab="station.stationName"
     >
-      <TimeTable :data="timeTableData" :loading="loading"></TimeTable>
+      <LiveBoardTable :data="tableData" :loading="loading"></LiveBoardTable>
     </n-tab-pane>
   </n-tabs>
 </template>

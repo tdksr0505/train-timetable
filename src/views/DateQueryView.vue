@@ -1,0 +1,121 @@
+<script setup lang="ts">
+import DateQueryTable from "../components/DateQueryTable.vue";
+import { ref, reactive } from "vue";
+import { NDatePicker, NSelect, NButton } from "naive-ui";
+import { useStationInfoStore } from "../store/stationInfo";
+import { ArrowsLeftRight } from "@vicons/tabler";
+// import queryFakeData from "../../queryFakeData.json";
+import type { TDateQueryData } from "../type";
+import { watch } from "vue";
+
+const TDX_API_BASE = import.meta.env.VITE_TDX_API_BASE;
+
+const getTodayDate = () => {
+  let date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${date.getDate()}`;
+};
+
+const dateQueryData = reactive<TDateQueryData>({
+  date: null,
+  fromStationName: null,
+  toStationName: null,
+  tableData: null,
+});
+const pickDate = ref<string>(getTodayDate());
+
+const stationInfoStore = useStationInfoStore();
+const stationsInfo = stationInfoStore.stationsInfo;
+const fromDefaultValue = stationsInfo[0].id.toString();
+const toDefaultValue = stationsInfo[2].id.toString();
+const fromStation = ref<string>(fromDefaultValue);
+const toStation = ref<string>(toDefaultValue);
+const loading = ref<boolean>(false);
+
+const fetchData = (date: string, from: string, to: string) => {
+  loading.value = true;
+  fetch(
+    `${TDX_API_BASE}/v3/Rail/TRA/DailyTrainTimetable/OD/${from}/to/${to}/${date}?$top=1000&$format=JSON`
+  )
+    .then((res) => res.json())
+    .then((resJson) => {
+      console.log(resJson);
+      dateQueryData.tableData = resJson.TrainTimetables;
+      loading.value = false;
+    });
+  // dateQueryData.tableData = queryFakeData.TrainTimetables;
+  dateQueryData.date = pickDate.value;
+  dateQueryData.toStationName = stationInfoStore.getStaionsName(
+    parseInt(toStation.value)
+  );
+  dateQueryData.fromStationName = stationInfoStore.getStaionsName(
+    parseInt(fromStation.value)
+  );
+};
+
+const onClickQuery = () => {
+  fetchData(pickDate.value, fromStation.value, toStation.value);
+};
+
+const onClickExchange = () => {
+  [fromStation.value, toStation.value] = [toStation.value, fromStation.value];
+};
+
+watch(
+  () => dateQueryData.tableData,
+  (newValue) => {
+    if (newValue) {
+      newValue?.sort((a, b) => {
+        if (a.StopTimes[0].DepartureTime < b.StopTimes[0].DepartureTime) {
+          return -1;
+        } else {
+          return 1;
+        }
+      });
+    }
+  }
+);
+</script>
+
+<template>
+  <div>
+    <n-date-picker
+      v-model:formatted-value="pickDate"
+      value-format="yyyy-MM-dd"
+      type="date"
+      size="large"
+    />
+  </div>
+  <div class="flex items-center mt-3">
+    <div class="flex-1">
+      <n-select
+        v-model:value="fromStation"
+        :options="stationInfoStore.getStaionsSelectOption"
+        size="large"
+      />
+    </div>
+    <div class="flex-initial px-2">～</div>
+    <div class="flex-1">
+      <n-select
+        v-model:value="toStation"
+        :options="stationInfoStore.getStaionsSelectOption"
+        size="large"
+      />
+    </div>
+  </div>
+  <div class="mt-3 h-9 text-center">
+    <n-button @click="onClickExchange" class="w-full h-full" type="info">
+      <ArrowsLeftRight class="w-7" />
+    </n-button>
+  </div>
+  <div class="mt-3">
+    <n-button @click="onClickQuery" class="w-full text-base" type="primary"
+      >查詢</n-button
+    >
+  </div>
+  <div v-if="dateQueryData.tableData" class="pt-4">
+    <DateQueryTable :data="dateQueryData" :loading="loading"></DateQueryTable>
+  </div>
+</template>

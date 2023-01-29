@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import DateQueryTable from "../components/DateQueryTable.vue";
 import { ref, reactive } from "vue";
-import { NDatePicker, NSelect, NButton } from "naive-ui";
+import { NDatePicker, NSelect, NButton, useMessage } from "naive-ui";
 import { useStationInfoStore } from "../store/stationInfo";
+import { useLoadingStore } from "../store/loading";
 import { ArrowsLeftRight } from "@vicons/tabler";
 // import queryFakeData from "../../queryFakeData.json";
 import type { TDateQueryData } from "../type";
 import { watch } from "vue";
 
 const TDX_API_BASE = import.meta.env.VITE_TDX_API_BASE;
+const message = useMessage();
 
 const getTodayDate = () => {
   let date = new Date();
@@ -26,24 +28,30 @@ const dateQueryData = reactive<TDateQueryData>({
 });
 const pickDate = ref<string>(getTodayDate());
 
+const loadingStore = useLoadingStore();
 const stationInfoStore = useStationInfoStore();
 const stationsInfo = stationInfoStore.stationsInfo;
 const fromDefaultValue = stationsInfo[0].id.toString();
 const toDefaultValue = stationsInfo[2].id.toString();
 const fromStation = ref<string>(fromDefaultValue);
 const toStation = ref<string>(toDefaultValue);
-const loading = ref<boolean>(false);
 
 const fetchData = (date: string, from: string, to: string) => {
-  loading.value = true;
+  loadingStore.setLoading(true);
   fetch(
     `${TDX_API_BASE}/v3/Rail/TRA/DailyTrainTimetable/OD/${from}/to/${to}/${date}?$top=1000&$format=JSON`
   )
-    .then((res) => res.json())
+    .then((res) => {
+      if (res.status === 429) {
+        // status 429:請求api次數過多
+        message.error("請求api次數過多");
+      }
+      return res.json();
+    })
     .then((resJson) => {
       console.log(resJson);
       dateQueryData.tableData = resJson.TrainTimetables;
-      loading.value = false;
+      loadingStore.setLoading(false);
     });
   // dateQueryData.tableData = queryFakeData.TrainTimetables;
   dateQueryData.date = pickDate.value;
@@ -57,6 +65,9 @@ const fetchData = (date: string, from: string, to: string) => {
 
 const onClickQuery = () => {
   fetchData(pickDate.value, fromStation.value, toStation.value);
+  setTimeout(() => {
+    loadingStore.setLoading(true);
+  }, 2000);
 };
 
 const onClickExchange = () => {
@@ -116,6 +127,6 @@ watch(
     >
   </div>
   <div v-if="dateQueryData.tableData" class="pt-4">
-    <DateQueryTable :data="dateQueryData" :loading="loading"></DateQueryTable>
+    <DateQueryTable :data="dateQueryData"></DateQueryTable>
   </div>
 </template>

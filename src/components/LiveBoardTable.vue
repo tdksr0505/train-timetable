@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { NList, NListItem } from "naive-ui";
 import type { TStationLiveBoardData } from "../type";
+import { useLoadingStore } from "../store/loading";
 
 const props = defineProps<{
   data: TStationLiveBoardData[] | null;
-  loading?: boolean;
 }>();
 
+const loadingStore = useLoadingStore();
 const getDepartureTime = (scheduledDepartureTime: string) => {
   let timeSplit = scheduledDepartureTime.split(":");
   return `${timeSplit[0]}：${timeSplit[1]}`;
@@ -22,7 +23,7 @@ const getDelay = (delay: number) => {
 </script>
 
 <template>
-  <div v-if="props.data && !props.loading">
+  <div v-if="props.data && !loadingStore.loading">
     <div v-if="props.data.length === 0">無列車資訊</div>
     <div v-else>
       <n-list :bordered="true">

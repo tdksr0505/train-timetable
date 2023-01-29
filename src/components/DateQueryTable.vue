@@ -4,12 +4,13 @@ import type { TDateQueryData } from "../type";
 import { ArrowForward } from "@vicons/ionicons5";
 import { Clock } from "@vicons/tabler";
 import moment from "moment";
+import { useLoadingStore } from "../store/loading";
 
 const props = defineProps<{
   data: TDateQueryData | null;
-  loading?: boolean;
 }>();
 
+const loadingStore = useLoadingStore();
 const getDuration = (startTime: string, endTime: string): string => {
   let duration = moment.duration(
     moment(endTime, "HH:mm").add(1, "days").diff(moment(startTime, "HH:mm"))
@@ -21,7 +22,7 @@ const getDuration = (startTime: string, endTime: string): string => {
 </script>
 
 <template>
-  <div v-if="props.data?.tableData && !props.loading">
+  <div v-if="props.data?.tableData && !loadingStore.loading">
     <div v-if="props.data.tableData.length === 0">無列車資訊</div>
     <div v-else>
       <div class="flex mb-5 text-xl">

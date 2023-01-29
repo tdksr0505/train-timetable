@@ -1,25 +1,34 @@
 <script setup lang="ts">
 import LiveBoardTable from "../components/LiveBoardTable.vue";
 import { onMounted, ref } from "vue";
-import { NTabs, NTabPane } from "naive-ui";
+import { NTabs, NTabPane, useMessage } from "naive-ui";
 import { useStationInfoStore } from "../store/stationInfo";
 import type { TStationLiveBoardData } from "../type";
+import { useLoadingStore } from "../store/loading";
 
 const TDX_API_BASE = import.meta.env.VITE_TDX_API_BASE;
-const loading = ref(false);
+const message = useMessage();
+
 const tableData = ref<TStationLiveBoardData[] | null>(null);
 const stationInfoStore = useStationInfoStore();
+const loadingStore = useLoadingStore();
 
 const fetchData = (stationId: number) => {
-  loading.value = true;
+  loadingStore.setLoading(true);
   fetch(
     `${TDX_API_BASE}/v2/Rail/TRA/LiveBoard/Station/${stationId}?$top=1000&$format=JSON`
   )
-    .then((res) => res.json())
+    .then((res) => {
+      if (res.status === 429) {
+        // status 429:請求api次數過多
+        message.error("請求api次數過多");
+      }
+      return res.json();
+    })
     .then((resJson) => {
       tableData.value = resJson;
       stationInfoStore.setLiveBoardData(stationId, resJson);
-      loading.value = false;
+      loadingStore.setLoading(false);
     });
 };
 const handleValueChange = (value: number) => {
@@ -43,7 +52,7 @@ onMounted(async () => {
       :name="station.id"
       :tab="station.stationName"
     >
-      <LiveBoardTable :data="tableData" :loading="loading"></LiveBoardTable>
+      <LiveBoardTable :data="tableData"></LiveBoardTable>
     </n-tab-pane>
   </n-tabs>
 </template>

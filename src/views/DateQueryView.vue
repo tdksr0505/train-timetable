@@ -51,7 +51,7 @@ const fetchData = (date: string, from: string, to: string) => {
       }
     })
     .then((resJson) => {
-      console.log(resJson);
+      // console.log(resJson);
       if (resJson) dateQueryData.tableData = resJson?.TrainTimetables;
       loadingStore.setLoading(false);
     });

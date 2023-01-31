@@ -57,6 +57,7 @@ const fetchData = (stationId: number) => {
     });
 };
 const handleValueChange = (value: number) => {
+  currentStationId.value = value;
   let currentLiveBoardData = stationInfoStore.getLiveBoardData(value);
   if (currentLiveBoardData) {
     tableData.value = currentLiveBoardData;

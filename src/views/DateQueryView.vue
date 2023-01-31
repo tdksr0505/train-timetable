@@ -57,10 +57,10 @@ const fetchData = (date: string, from: string, to: string) => {
     });
   // dateQueryData.tableData = queryFakeData.TrainTimetables;
   dateQueryData.date = pickDate.value;
-  dateQueryData.toStationName = stationInfoStore.getStaionsName(
+  dateQueryData.toStationName = stationInfoStore.getStaionName(
     parseInt(toStation.value)
   );
-  dateQueryData.fromStationName = stationInfoStore.getStaionsName(
+  dateQueryData.fromStationName = stationInfoStore.getStaionName(
     parseInt(fromStation.value)
   );
 };

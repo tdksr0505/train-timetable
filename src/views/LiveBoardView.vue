@@ -5,14 +5,37 @@ import { NTabs, NTabPane, useMessage } from "naive-ui";
 import { useStationInfoStore } from "../store/stationInfo";
 import type { TStationLiveBoardData } from "../type";
 import { useLoadingStore } from "../store/loading";
+// import liveTablefakeData from "../../liveTablefakeData.json";
 
+type TDirection = {
+  label: string;
+  value: number;
+};
+const DIRECTION_TAB: Array<TDirection> = [
+  { label: "全部", value: -1 },
+  { label: "北上", value: 0 },
+  { label: "南下", value: 1 },
+];
+
+const DEFAULT_STATION_ID = 1070; //鶯歌
 const TDX_API_BASE = import.meta.env.VITE_TDX_API_BASE;
 const message = useMessage();
-
 const tableData = ref<TStationLiveBoardData[] | null>(null);
 const stationInfoStore = useStationInfoStore();
 const loadingStore = useLoadingStore();
+const currentStationId = ref<number>(DEFAULT_STATION_ID);
+const currentDirection = ref<number>(-1);
 
+const onChangeDirection = (value: number) => {
+  currentDirection.value = value;
+  tableData.value = stationInfoStore.getLiveBoardData(currentStationId.value);
+  if (value !== -1) {
+    // 非點選全部
+    tableData.value = tableData.value.filter(
+      (elem) => elem.Direction === value
+    );
+  }
+};
 const fetchData = (stationId: number) => {
   loadingStore.setLoading(true);
   fetch(
@@ -42,7 +65,7 @@ const handleValueChange = (value: number) => {
   }
 };
 onMounted(async () => {
-  handleValueChange(1070);
+  handleValueChange(DEFAULT_STATION_ID);
 });
 </script>
 
@@ -53,8 +76,24 @@ onMounted(async () => {
       :key="station.id"
       :name="station.id"
       :tab="station.stationName"
+      class="text-lg"
     >
-      <LiveBoardTable v-if="tableData" :data="tableData"></LiveBoardTable>
+      <div v-if="tableData">
+        <div class="flex items-center mb-3 text-base">
+          <div v-for="elem in DIRECTION_TAB">
+            <div
+              class="border border-green-600 rounded-[100px] px-4 py-1 mr-3 cursor-pointer"
+              :class="{
+                'bg-green-600 text-white': currentDirection === elem.value,
+              }"
+              @click="onChangeDirection(elem.value)"
+            >
+              {{ elem.label }}
+            </div>
+          </div>
+        </div>
+        <LiveBoardTable :data="tableData"></LiveBoardTable>
+      </div>
     </n-tab-pane>
   </n-tabs>
 </template>

@@ -25,9 +25,9 @@ export const useStationInfoStore = defineStore("stationInfo", {
     getLiveBoardData: (state) => {
       return (stationId: number) =>
         state.stationsInfo.find((station) => station.id === stationId)
-          ?.liveBoardData;
+          ?.liveBoardData!;
     },
-    getStaionsName: (state) => {
+    getStaionName: (state) => {
       return (stationId: number) =>
         state.stationsInfo.find((station) => station.id === stationId)
           ?.stationName!;

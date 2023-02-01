@@ -23,7 +23,7 @@ const onClickGoTop = () => {
 
 <template>
   <n-message-provider>
-    <header class="h-12 shadow flex justify-between">
+    <header class="h-12 shadow flex items-center justify-between">
       <div class="text-[30px] font-bold text-green-600 pl-4">
         <RouterLink to="/">火車時刻表</RouterLink>
       </div>

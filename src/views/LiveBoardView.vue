@@ -17,14 +17,15 @@ const DIRECTION_TAB: Array<TDirection> = [
   { label: "南下", value: 1 },
 ];
 
-const DEFAULT_STATION_ID = 1070; //鶯歌
+const DEFAULT_STATION_ID = 1070; // 鶯歌
+const DEFAULT_DIRECTION = -1 // 全部
 const TDX_API_BASE = import.meta.env.VITE_TDX_API_BASE;
 const message = useMessage();
 const tableData = ref<TStationLiveBoardData[] | null>(null);
 const stationInfoStore = useStationInfoStore();
 const loadingStore = useLoadingStore();
 const currentStationId = ref<number>(DEFAULT_STATION_ID);
-const currentDirection = ref<number>(-1);
+const currentDirection = ref<number>(DEFAULT_DIRECTION);
 
 const onChangeDirection = (value: number) => {
   currentDirection.value = value;
@@ -58,6 +59,7 @@ const fetchData = (stationId: number) => {
 };
 const handleValueChange = (value: number) => {
   currentStationId.value = value;
+  currentDirection.value = DEFAULT_DIRECTION
   let currentLiveBoardData = stationInfoStore.getLiveBoardData(value);
   if (currentLiveBoardData) {
     tableData.value = currentLiveBoardData;

@@ -37,7 +37,7 @@ const onClickGoTop = () => {
       </div>
     </header>
     <Sidebar :open="isSidebarOpen" @set-sidebar-open="setSideBaropen" />
-    <div class="container px-4 m-auto pt-8">
+    <div class="container px-4 py-8 m-auto">
       <RouterView />
     </div>
     <div

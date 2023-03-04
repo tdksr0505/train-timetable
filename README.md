@@ -8,7 +8,7 @@
 
 -查詢指定車站的月台電子看板列車資訊<br> -查詢指定日期指定車站的一日所有列車資訊<br>
 
-## 前端技術
+## Frontend
 
 -Vue3<br>
 -Typescript<br>
@@ -17,6 +17,6 @@
 -Naive-UI<br>
 -Tailwind<br>
 
-## 後端技術
+## Backend
 
 -串接 ptx 平台提供的台鐵資訊

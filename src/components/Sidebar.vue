@@ -5,6 +5,7 @@ import { useMenuStore } from "../store/menu";
 import { RouterLink } from "vue-router";
 
 const { open } = defineProps(["open"]);
+defineEmits(["setSidebarOpen"]);
 
 const menuStore = useMenuStore();
 </script>

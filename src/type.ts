@@ -91,3 +91,8 @@ export type TDateQueryData = {
   toStationName: string | null;
   tableData: Array<TDateQueryTableData> | null;
 };
+
+export type TSelectOption = {
+  label: string;
+  value: string;
+};

@@ -1,34 +1,35 @@
 import { defineStore } from "pinia";
-import type { TStationLiveBoardData } from "../type";
+import { STATION_ID_INFO } from "../constants";
+import type { TSelectOption, TStationLiveBoardData } from "../type";
 
 export const useStationInfoStore = defineStore("stationInfo", {
   state: () => ({
     stationsInfo: [
       {
-        id: 1070,
-        stationName: "鶯歌",
+        id: STATION_ID_INFO.YINGGE.id,
+        stationName: STATION_ID_INFO.YINGGE.title,
         liveBoardData: null as Array<TStationLiveBoardData> | null,
       },
       {
-        id: 1020,
-        stationName: "板橋",
+        id: STATION_ID_INFO.BANQIAO.id,
+        stationName: STATION_ID_INFO.BANQIAO.title,
         liveBoardData: null as Array<TStationLiveBoardData> | null,
       },
       {
-        id: 1000,
-        stationName: "台北",
+        id: STATION_ID_INFO.TAIPEI.id,
+        stationName: STATION_ID_INFO.TAIPEI.title,
         liveBoardData: null as Array<TStationLiveBoardData> | null,
       },
     ],
   }),
   getters: {
     getLiveBoardData: (state) => {
-      return (stationId: number) =>
+      return (stationId: string) =>
         state.stationsInfo.find((station) => station.id === stationId)
           ?.liveBoardData!;
     },
     getStaionName: (state) => {
-      return (stationId: number) =>
+      return (stationId: string) =>
         state.stationsInfo.find((station) => station.id === stationId)
           ?.stationName!;
     },
@@ -39,12 +40,12 @@ export const useStationInfoStore = defineStore("stationInfo", {
           value: cur.id.toString(),
         });
         return pre;
-      }, [] as { label: string; value: string }[]);
+      }, [] as TSelectOption[]);
     },
   },
   actions: {
     setLiveBoardData(
-      stationId: number,
+      stationId: string,
       liveBoardData: Array<TStationLiveBoardData>
     ) {
       const foundStation = this.stationsInfo.find((station) => {

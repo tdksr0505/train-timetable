@@ -1,65 +1,47 @@
 <script setup lang="ts">
-import LiveBoardTable from "../components/LiveBoardTable.vue";
 import { onMounted, ref } from "vue";
+import LiveBoardTable from "../components/LiveBoardTable.vue";
 import { NTabs, NTabPane, useMessage } from "naive-ui";
 import { useStationInfoStore } from "../store/stationInfo";
 import type { TStationLiveBoardData } from "../type";
 import { useLoadingStore } from "../store/loading";
-// import liveTablefakeData from "../../liveTablefakeData.json";
+import { getLiveBoardData } from "../api";
+import { DIRECTION, DIRECTION_TAB, STATION_ID_INFO } from "../constants";
+// import liveTablefakeData from "../../liveTablefakeData.json"; // debug用
 
-type TDirection = {
-  label: string;
-  value: number;
-};
-const DIRECTION_TAB: Array<TDirection> = [
-  { label: "全部", value: -1 },
-  { label: "北上", value: 0 },
-  { label: "南下", value: 1 },
-];
-
-const DEFAULT_STATION_ID = 1070; // 鶯歌
-const DEFAULT_DIRECTION = -1 // 全部
-const TDX_API_BASE = import.meta.env.VITE_TDX_API_BASE;
-const message = useMessage();
+const DEFAULT_STATION_ID = STATION_ID_INFO.YINGGE.id; // 鶯歌
+const DEFAULT_DIRECTION = DIRECTION.Both; // 全部方向
 const tableData = ref<TStationLiveBoardData[] | null>(null);
 const stationInfoStore = useStationInfoStore();
 const loadingStore = useLoadingStore();
-const currentStationId = ref<number>(DEFAULT_STATION_ID);
+const currentStationId = ref<string>(DEFAULT_STATION_ID);
 const currentDirection = ref<number>(DEFAULT_DIRECTION);
+const message = useMessage();
 
 const onChangeDirection = (value: number) => {
   currentDirection.value = value;
   tableData.value = stationInfoStore.getLiveBoardData(currentStationId.value);
-  if (value !== -1) {
+  if (value !== DIRECTION.Both) {
     // 非點選全部
     tableData.value = tableData.value.filter(
       (elem) => elem.Direction === value
     );
   }
 };
-const fetchData = (stationId: number) => {
+const fetchData = async (stationId: string) => {
   loadingStore.setLoading(true);
-  fetch(
-    `${TDX_API_BASE}/v2/Rail/TRA/LiveBoard/Station/${stationId}?$top=1000&$format=JSON`
-  )
-    .then((res) => {
-      if (res.status === 429) {
-        // status 429:請求api次數過多
-        message.error("請求api次數過多");
-        return null;
-      } else {
-        return res.json();
-      }
-    })
-    .then((resJson) => {
-      tableData.value = resJson;
-      stationInfoStore.setLiveBoardData(stationId, resJson);
-      loadingStore.setLoading(false);
-    });
+  const liveBoardData = await getLiveBoardData(stationId);
+  if (liveBoardData) {
+    tableData.value = liveBoardData;
+    stationInfoStore.setLiveBoardData(stationId, liveBoardData);
+    loadingStore.setLoading(false);
+  } else {
+    message.error("請求api次數過多, 請明天再試");
+  }
 };
-const handleValueChange = (value: number) => {
+const handleValueChange = (value: string) => {
   currentStationId.value = value;
-  currentDirection.value = DEFAULT_DIRECTION
+  currentDirection.value = DEFAULT_DIRECTION;
   let currentLiveBoardData = stationInfoStore.getLiveBoardData(value);
   if (currentLiveBoardData) {
     tableData.value = currentLiveBoardData;

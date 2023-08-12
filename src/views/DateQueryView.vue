@@ -16,7 +16,6 @@ const dateQueryData = reactive<TDateQueryData>({
   toStationName: null,
   tableData: null,
 });
-const pickDate = ref<string>(getTodayDate());
 const loadingStore = useLoadingStore();
 const stationInfoStore = useStationInfoStore();
 const stationsInfo = stationInfoStore.stationsInfo;
@@ -26,14 +25,18 @@ const fromStation = ref<string>(fromDefaultValue);
 const toStation = ref<string>(toDefaultValue);
 const message = useMessage();
 
-const fetchData = async (date: string, from: string, to: string) => {
+const fetchData = async (date: string) => {
   loadingStore.setLoading(true);
-  const dailyTrainTimetable = await getDailyTrainTimetable(date, from, to);
+  const dailyTrainTimetable = await getDailyTrainTimetable(
+    date,
+    fromStation.value,
+    toStation.value
+  );
   if (dailyTrainTimetable) {
     dateQueryData.tableData = dailyTrainTimetable?.TrainTimetables;
     loadingStore.setLoading(false);
     // dateQueryData.tableData = queryFakeData.TrainTimetables;  // debug用
-    dateQueryData.date = pickDate.value;
+    dateQueryData.date = date;
     dateQueryData.toStationName = stationInfoStore.getStaionName(
       toStation.value
     );
@@ -45,14 +48,12 @@ const fetchData = async (date: string, from: string, to: string) => {
   }
 };
 
-const onClickQuery = (
-  pickDate: string,
-  fromStation: string,
-  toStation: string
-) => {
-  fetchData(pickDate, fromStation, toStation);
+const onClickQuery = (pickDate: string) => {
+  fetchData(pickDate);
 };
-
+const onClickExchange = () => {
+  [fromStation.value, toStation.value] = [toStation.value, fromStation.value];
+};
 watch(
   () => dateQueryData.tableData,
   (newValue) => {
@@ -72,7 +73,10 @@ watch(
 <template>
   <DateQueryBox
     :stationOption="stationInfoStore.getStaionsSelectOption"
+    :fromStation="fromStation"
+    :toStation="toStation"
     @onClickQuery="onClickQuery"
+    @onClickExchange="onClickExchange"
   />
   <div v-if="dateQueryData.tableData" class="pt-4">
     <DateQueryTable :data="dateQueryData"></DateQueryTable>

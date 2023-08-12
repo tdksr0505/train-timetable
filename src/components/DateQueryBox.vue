@@ -7,25 +7,20 @@ import type { TSelectOption } from "@/type";
 
 const props = defineProps<{
   stationOption: TSelectOption[];
+  fromStation: string;
+  toStation: string;
 }>();
 const emit = defineEmits<{
-  (
-    e: "onClickQuery",
-    pickDate: string,
-    fromStation: string,
-    toStation: string
-  ): void;
+  (e: "onClickQuery", pickDate: string): void;
+  (e: "onClickExchange"): void;
 }>();
-const fromDefaultValue = props.stationOption[0].value;
-const toDefaultValue = props.stationOption[2].value;
-const fromStation = ref<string>(fromDefaultValue.toString());
-const toStation = ref<string>(toDefaultValue.toString());
+
 const pickDate = ref<string>(getTodayDate());
 const onClickExchange = () => {
-  [fromStation.value, toStation.value] = [toStation.value, fromStation.value];
+  emit("onClickExchange");
 };
 const onClickQuery = () => {
-  emit("onClickQuery", pickDate.value, fromStation.value, toStation.value);
+  emit("onClickQuery", pickDate.value);
 };
 </script>
 
@@ -42,7 +37,7 @@ const onClickQuery = () => {
     <div class="flex items-center mt-3 md:mt-0 md:w-1/2 md:pr-4">
       <div class="flex-1">
         <n-select
-          v-model:value="fromStation"
+          v-model:value="props.fromStation"
           :options="props.stationOption"
           size="large"
         />
@@ -50,7 +45,7 @@ const onClickQuery = () => {
       <div class="flex-initial px-2">~</div>
       <div class="flex-1">
         <n-select
-          v-model:value="toStation"
+          v-model:value="props.toStation"
           :options="props.stationOption"
           size="large"
         />

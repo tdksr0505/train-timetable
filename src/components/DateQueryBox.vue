@@ -3,24 +3,30 @@ import { ref } from "vue";
 import { NDatePicker, NSelect, NButton } from "naive-ui";
 import { ArrowsLeftRight } from "@vicons/tabler";
 import { getTodayDate } from "@/utils";
+import { useStationInfoStore } from "@/store/stationInfo";
 import type { TSelectOption } from "@/type";
 
-const props = defineProps<{
-  stationOption: TSelectOption[];
-  fromStation: string;
-  toStation: string;
-}>();
+const stationInfoStore = useStationInfoStore();
+const stationsInfo = stationInfoStore.stationsInfo;
+const stationOption = stationInfoStore.getStaionsSelectOption;
+const fromStation = ref<string>(stationsInfo[0].id);
+const toStation = ref<string>(stationsInfo[2].id);
 const emit = defineEmits<{
-  (e: "onClickQuery", pickDate: string): void;
+  (
+    e: "onClickQuery",
+    pickDate: string,
+    fromStation: string,
+    toStation: string
+  ): void;
   (e: "onClickExchange"): void;
 }>();
 
 const pickDate = ref<string>(getTodayDate());
 const onClickExchange = () => {
-  emit("onClickExchange");
+  [fromStation.value, toStation.value] = [toStation.value, fromStation.value];
 };
 const onClickQuery = () => {
-  emit("onClickQuery", pickDate.value);
+  emit("onClickQuery", pickDate.value, fromStation.value, toStation.value);
 };
 </script>
 
@@ -37,16 +43,16 @@ const onClickQuery = () => {
     <div class="flex items-center mt-3 md:mt-0 md:w-1/2 md:pr-4">
       <div class="flex-1">
         <n-select
-          v-model:value="props.fromStation"
-          :options="props.stationOption"
+          v-model:value="fromStation"
+          :options="stationOption"
           size="large"
         />
       </div>
       <div class="flex-initial px-2">~</div>
       <div class="flex-1">
         <n-select
-          v-model:value="props.toStation"
-          :options="props.stationOption"
+          v-model:value="toStation"
+          :options="stationOption"
           size="large"
         />
       </div>
